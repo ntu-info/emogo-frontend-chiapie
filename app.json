@@ -2,24 +2,59 @@
   "expo": {
     "scheme": "acme",
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-sqlite",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow EmoGo to access your camera to record video vlogs.",
+          "microphonePermission": "Allow EmoGo to access your microphone to record video vlogs.",
+          "recordAudioAndroid": true
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow EmoGo to use your location to track where you record your responses.",
+          "locationWhenInUsePermission": "Allow EmoGo to use your location to track where you record your responses."
+        }
+      ]
     ],
-    "name": "expo-router-mwe",
-    "slug": "expo-router-mwe",
+    "name": "EmoGo",
+    "slug": "emogo-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
     "android": {
-      "package": "com.spiketren.exporoutermwe"
+      "package": "com.spiketren.emogoapp",
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "POST_NOTIFICATIONS",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "7918e76f-59e9-45c4-aae4-c99cec64cfac"
+        "projectId": "cfaa840b-a6ac-4ec7-9506-a43402c270b9"
       }
     },
-    "owner": "spiketren",
     "ios": {
-      "bundleIdentifier": "com.spiketren.exporoutermwe",
+      "bundleIdentifier": "com.spiketren.emogoapp",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Allow EmoGo to access your camera to record video vlogs.",
+        "NSMicrophoneUsageDescription": "Allow EmoGo to access your microphone to record video vlogs.",
+        "NSLocationWhenInUseUsageDescription": "Allow EmoGo to use your location to track where you record your responses.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Allow EmoGo to use your location to track where you record your responses."
       }
     }
   }

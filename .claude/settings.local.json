@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(npx expo install:*)",
+      "Bash(npm install)",
+      "Bash(npx tsc:*)",
+      "Bash(cat:*)",
+      "Bash(npx expo start:*)",
+      "Bash(npm install:*)",
+      "Bash(lsof:*)",
+      "Bash(curl:*)",
+      "Bash(open http://localhost:8081)",
+      "Bash(timeout 60 npx expo start:*)",
+      "Bash(pkill:*)",
+      "Bash(open:*)",
+      "Bash(xargs kill:*)",
+      "Bash(npm bin:*)",
+      "Bash(eas whoami:*)",
+      "Bash(sudo chown:*)",
+      "Bash(npx eas-cli:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
