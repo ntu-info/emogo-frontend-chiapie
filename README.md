@@ -1,7 +1,7 @@
-# EmoGo - Experience-Sampling Mobile App
+# EmoGo - Experience-Sampling App
 
 ## App URI
-https://expo.dev/accounts/janet_c/projects/emogo-app/builds/c94a6ccc-1aa8-4fd2-83fe-6a3a80efcc18
+🔗: https://expo.dev/accounts/janet_c/projects/emogo-app/builds/c94a6ccc-1aa8-4fd2-83fe-6a3a80efcc18
 
 ## Overview
 EmoGo is a mobile application designed to collect experience-sampling data through sentiment surveys, 1-second video vlogs, and GPS coordinates. The app sends 3 daily reminders to help users track their emotional well-being throughout the day.
@@ -202,15 +202,4 @@ npx expo start --clear
 - Check console logs for errors
 - Data persists between app restarts
 
-## Contributing
-This is an educational project for experience-sampling data collection.
-
-## License
-MIT License
-
-## Support
-For issues or questions, please check the troubleshooting section or review the code documentation.
-
 ---
-
-Built with React Native and Expo
