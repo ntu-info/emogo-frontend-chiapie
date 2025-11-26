@@ -1,22 +1,23 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as FileSystem from 'expo-file-system';
-import { insertVlogEntry, insertSurveyResponse } from '../../utils/database';
+import { insertVlogEntry } from '../../utils/database';
 import { getCurrentLocation } from '../../utils/location';
 
-const sentimentEmojis = ['😢', '😕', '😐', '🙂', '😄'];
-const sentimentLabels = ['Very Sad', 'Sad', 'Neutral', 'Happy', 'Very Happy'];
-
 export default function VlogScreen() {
+  const [facing, setFacing] = useState<CameraType>('front');
   const [permission, requestPermission] = useCameraPermissions();
   const [isRecording, setIsRecording] = useState(false);
-  const [facing, setFacing] = useState<CameraType>('front');
-  const [selectedSentiment, setSelectedSentiment] = useState<number | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
   const cameraRef = useRef<CameraView>(null);
 
   if (!permission) {
-    return <View style={styles.container}><Text>Loading...</Text></View>;
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#FF6B6B" />
+      </View>
+    );
   }
 
   if (!permission.granted) {
@@ -34,67 +35,19 @@ export default function VlogScreen() {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
   };
 
-  const saveVlog = async (videoUri: string) => {
-    try {
-      // Get location
-      const location = await getCurrentLocation();
-      const timestamp = new Date().toISOString();
-
-      // Copy video to app directory
-      const filename = `vlog_${Date.now()}.mp4`;
-      const destUri = (FileSystem as any).documentDirectory + filename;
-
-      await FileSystem.copyAsync({
-        from: videoUri,
-        to: destUri,
-      });
-
-      // Save video metadata to database
-      await insertVlogEntry({
-        timestamp,
-        video_uri: destUri,
-        latitude: location?.coords.latitude || null,
-        longitude: location?.coords.longitude || null,
-      });
-
-      // Save mood data if selected
-      if (selectedSentiment !== null) {
-        await insertSurveyResponse({
-          timestamp,
-          sentiment_score: selectedSentiment + 1, // 1-5 scale
-          latitude: location?.coords.latitude || null,
-          longitude: location?.coords.longitude || null,
-        });
-      }
-
-      Alert.alert('Success', 'Vlog and mood saved!', [
-        { text: 'OK', onPress: () => setSelectedSentiment(null) }
-      ]);
-    } catch (error) {
-      console.error('Error saving vlog:', error);
-      Alert.alert('Error', 'Failed to save vlog. Please try again.');
-    }
-  };
-
   const recordVlog = async () => {
     if (!cameraRef.current || isRecording) return;
-
-    // Check if mood is selected
-    if (selectedSentiment === null) {
-      Alert.alert('Select Your Mood', 'Please select how you\'re feeling before recording.');
-      return;
-    }
 
     try {
       setIsRecording(true);
 
+      // Start recording
       const video = await cameraRef.current.recordAsync({
-        maxDuration: 1, // 1 second
+        maxDuration: 1,
       });
 
-      if (video && video.uri) {
-        await saveVlog(video.uri);
-      }
+      // Save video
+      await saveVlog(video.uri);
     } catch (error) {
       console.error('Error recording vlog:', error);
       Alert.alert('Error', 'Failed to record vlog. Please try again.');
@@ -103,68 +56,85 @@ export default function VlogScreen() {
     }
   };
 
+  const saveVlog = async (videoUri: string) => {
+    try {
+      // Get location
+      const location = await getCurrentLocation();
+
+      // Create filename
+      const filename = `vlog_${Date.now()}.mp4`;
+      const destUri = `${FileSystem.documentDirectory}${filename}`;
+
+      // Copy video to app directory
+      await FileSystem.copyAsync({
+        from: videoUri,
+        to: destUri,
+      });
+
+      // Save metadata to database
+      await insertVlogEntry({
+        timestamp: new Date().toISOString(),
+        video_uri: destUri,
+        latitude: location?.coords.latitude || null,
+        longitude: location?.coords.longitude || null,
+      });
+
+      Alert.alert('Success!', 'Vlog recorded and saved successfully!');
+    } catch (error) {
+      console.error('Error saving vlog:', error);
+      Alert.alert('Error', 'Failed to save vlog. Please try again.');
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>How are you feeling?</Text>
-        <Text style={styles.subtitle}>Select your mood and record a 1-second vlog</Text>
-      </View>
+      <CameraView
+        style={styles.camera}
+        facing={facing}
+        ref={cameraRef}
+        mode="video"
+      >
+        <View style={styles.overlay}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Record 1-Second Vlog</Text>
+          </View>
 
-      <View style={styles.cameraContainer}>
-        <CameraView
-          style={styles.camera}
-          facing={facing}
-          ref={cameraRef}
-        >
-          <TouchableOpacity
-            style={styles.flipButton}
-            onPress={toggleCameraFacing}
-            disabled={isRecording}
-          >
-            <Text style={styles.buttonText}>Flip</Text>
-          </TouchableOpacity>
-
-          {isRecording && (
-            <View style={styles.recordingIndicator}>
-              <View style={styles.recordingDot} />
-              <Text style={styles.recordingText}>Recording...</Text>
-            </View>
-          )}
-        </CameraView>
-      </View>
-
-      <View style={styles.moodSection}>
-        <Text style={styles.moodTitle}>Select Your Mood</Text>
-        <View style={styles.sentimentContainer}>
-          {sentimentEmojis.map((emoji, index) => (
+          <View style={styles.controls}>
             <TouchableOpacity
-              key={index}
-              style={[
-                styles.sentimentButton,
-                selectedSentiment === index && styles.sentimentButtonSelected,
-              ]}
-              onPress={() => setSelectedSentiment(index)}
+              style={styles.flipButton}
+              onPress={toggleCameraFacing}
               disabled={isRecording}
             >
-              <Text style={styles.emoji}>{emoji}</Text>
-              <Text style={styles.label}>{sentimentLabels[index]}</Text>
+              <Text style={styles.flipButtonText}>🔄</Text>
             </TouchableOpacity>
-          ))}
-        </View>
-      </View>
 
-      <View style={styles.recordSection}>
-        <TouchableOpacity
-          style={[styles.recordButton, isRecording && styles.recordButtonActive]}
-          onPress={recordVlog}
-          disabled={isRecording}
-        >
-          <View style={styles.recordButtonInner} />
-        </TouchableOpacity>
-        <Text style={styles.instructionText}>
-          {isRecording ? 'Recording 1 second...' : 'Tap to record 1-second vlog'}
-        </Text>
-      </View>
+            <TouchableOpacity
+              style={[
+                styles.recordButton,
+                isRecording && styles.recordButtonActive,
+              ]}
+              onPress={recordVlog}
+              disabled={isRecording}
+            >
+              {isRecording ? (
+                <View style={styles.recordingIndicator}>
+                  <Text style={styles.recordingText}>●</Text>
+                </View>
+              ) : (
+                <Text style={styles.recordButtonText}>Record</Text>
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.placeholder} />
+          </View>
+
+          {countdown !== null && (
+            <View style={styles.countdownContainer}>
+              <Text style={styles.countdownText}>{countdown}</Text>
+            </View>
+          )}
+        </View>
+      </CameraView>
     </View>
   );
 }
@@ -172,184 +142,110 @@ export default function VlogScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FDEDED',
+    backgroundColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   message: {
+    fontSize: 16,
+    color: '#fff',
     textAlign: 'center',
-    paddingBottom: 20,
-    color: '#F875AA',
-    fontSize: 18,
-    fontWeight: '600',
+    marginBottom: 20,
+    paddingHorizontal: 20,
   },
   permissionButton: {
-    backgroundColor: '#F875AA',
-    padding: 18,
-    borderRadius: 16,
-    marginHorizontal: 40,
-    shadowColor: '#F875AA',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 6,
+    backgroundColor: '#FF6B6B',
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 12,
   },
   permissionButtonText: {
     color: '#fff',
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  camera: {
+    flex: 1,
+    width: '100%',
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
   header: {
-    padding: 20,
-    paddingTop: 10,
-    backgroundColor: '#FDEDED',
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    alignItems: 'center',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#333',
-    marginBottom: 5,
+    color: '#fff',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
   },
-  subtitle: {
-    fontSize: 14,
-    textAlign: 'center',
-    color: '#666',
-  },
-  cameraContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
-  camera: {
-    width: '100%',
-    aspectRatio: 3 / 4,
-    borderRadius: 20,
-    overflow: 'hidden',
-    backgroundColor: '#000',
+  controls: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    paddingHorizontal: 40,
+    paddingBottom: 40,
   },
   flipButton: {
-    position: 'absolute',
-    top: 15,
-    right: 15,
-    backgroundColor: '#F875AA',
-    padding: 12,
-    borderRadius: 12,
-    shadowColor: '#F875AA',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.5,
-    shadowRadius: 5,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  buttonText: {
-    fontSize: 14,
+  flipButtonText: {
+    fontSize: 30,
+  },
+  recordButton: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#FF6B6B',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 4,
+    borderColor: '#fff',
+  },
+  recordButtonActive: {
+    backgroundColor: '#FF0000',
+  },
+  recordButtonText: {
+    color: '#fff',
+    fontSize: 16,
     fontWeight: 'bold',
-    color: 'white',
   },
   recordingIndicator: {
-    position: 'absolute',
-    top: 15,
-    left: 15,
-    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F875AA',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 20,
-    shadowColor: '#F875AA',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.6,
-    shadowRadius: 5,
-  },
-  recordingDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#fff',
-    marginRight: 8,
   },
   recordingText: {
     color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 40,
   },
-  moodSection: {
-    paddingHorizontal: 20,
-    paddingTop: 15,
-    backgroundColor: '#FDEDED',
+  placeholder: {
+    width: 60,
   },
-  moodTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 12,
-    color: '#F875AA',
-  },
-  sentimentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  sentimentButton: {
-    alignItems: 'center',
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: '#fff',
-    flex: 1,
-    marginHorizontal: 3,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  sentimentButtonSelected: {
-    borderColor: '#F875AA',
-    backgroundColor: '#FFF0F7',
-  },
-  emoji: {
-    fontSize: 32,
-    marginBottom: 4,
-  },
-  label: {
-    fontSize: 9,
-    textAlign: 'center',
-    color: '#F875AA',
-    fontWeight: '600',
-  },
-  recordSection: {
-    alignItems: 'center',
-    paddingVertical: 15,
-    backgroundColor: '#FDEDED',
-  },
-  recordButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: 'rgba(248, 117, 170, 0.3)',
+  countdownContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
-    shadowColor: '#F875AA',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  recordButtonActive: {
-    backgroundColor: 'rgba(248, 117, 170, 0.7)',
-  },
-  recordButtonInner: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: '#F875AA',
-  },
-  instructionText: {
-    color: '#F875AA',
-    fontSize: 14,
-    textAlign: 'center',
-    fontWeight: '600',
-    paddingHorizontal: 15,
-    paddingVertical: 5,
+  countdownText: {
+    fontSize: 120,
+    fontWeight: 'bold',
+    color: '#fff',
   },
 });

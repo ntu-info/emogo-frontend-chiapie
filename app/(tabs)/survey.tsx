@@ -1,24 +1,36 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Platform } from 'react-native';
 import { insertSurveyResponse } from '../../utils/database';
 import { getCurrentLocation } from '../../utils/location';
 
-const sentimentEmojis = ['😢', '😕', '😐', '🙂', '😄'];
-const sentimentLabels = ['Very Sad', 'Sad', 'Neutral', 'Happy', 'Very Happy'];
+const SENTIMENTS = [
+  { score: 1, emoji: '😢', label: 'Very Sad' },
+  { score: 2, emoji: '😟', label: 'Sad' },
+  { score: 3, emoji: '😐', label: 'Neutral' },
+  { score: 4, emoji: '🙂', label: 'Happy' },
+  { score: 5, emoji: '😄', label: 'Very Happy' },
+];
 
 export default function SurveyScreen() {
-  const [selectedSentiment, setSelectedSentiment] = useState<number | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedScore, setSelectedScore] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmitSurvey = async () => {
-    if (selectedSentiment === null) {
-      Alert.alert('Please select a sentiment', 'Choose how you\'re feeling right now.');
+  const handleSubmit = async () => {
+    if (selectedScore === null) {
+      Alert.alert('Please select a sentiment', 'Choose how you\'re feeling right now');
       return;
     }
 
-    setIsSubmitting(true);
+    setLoading(true);
 
     try {
+      if (Platform.OS === 'web') {
+        Alert.alert('Web Demo', 'Survey submission works on mobile only. Data not saved on web.');
+        setSelectedScore(null);
+        setLoading(false);
+        return;
+      }
+
       // Get current location
       const location = await getCurrentLocation();
 
@@ -28,54 +40,62 @@ export default function SurveyScreen() {
       // Save to database
       await insertSurveyResponse({
         timestamp,
-        sentiment_score: selectedSentiment + 1, // 1-5 scale
+        sentiment_score: selectedScore,
         latitude: location?.coords.latitude || null,
         longitude: location?.coords.longitude || null,
       });
 
-      // Show success message
-      Alert.alert('Success', 'Response saved!', [
-        { text: 'OK', onPress: () => setSelectedSentiment(null) }
+      Alert.alert('Success!', 'Your response has been saved', [
+        {
+          text: 'OK',
+          onPress: () => setSelectedScore(null),
+        },
       ]);
     } catch (error) {
       console.error('Error submitting survey:', error);
       Alert.alert('Error', 'Failed to save response. Please try again.');
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>How are you feeling?</Text>
-      <Text style={styles.subtitle}>Quick mood check-in (without video)</Text>
+      <Text style={styles.subtitle}>Select your current mood</Text>
 
       <View style={styles.sentimentContainer}>
-        {sentimentEmojis.map((emoji, index) => (
+        {SENTIMENTS.map((sentiment) => (
           <TouchableOpacity
-            key={index}
+            key={sentiment.score}
             style={[
               styles.sentimentButton,
-              selectedSentiment === index && styles.sentimentButtonSelected,
+              selectedScore === sentiment.score && styles.sentimentButtonSelected,
             ]}
-            onPress={() => setSelectedSentiment(index)}
-            disabled={isSubmitting}
+            onPress={() => setSelectedScore(sentiment.score)}
+            disabled={loading}
           >
-            <Text style={styles.emoji}>{emoji}</Text>
-            <Text style={styles.label}>{sentimentLabels[index]}</Text>
+            <Text style={styles.emoji}>{sentiment.emoji}</Text>
+            <Text style={styles.label}>{sentiment.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
       <TouchableOpacity
-        style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
-        onPress={handleSubmitSurvey}
-        disabled={isSubmitting}
+        style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+        onPress={handleSubmit}
+        disabled={loading || selectedScore === null}
       >
-        <Text style={styles.submitButtonText}>
-          {isSubmitting ? 'Saving...' : 'Submit Response'}
-        </Text>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.submitButtonText}>Submit Response</Text>
+        )}
       </TouchableOpacity>
+
+      <Text style={styles.timestamp}>
+        {new Date().toLocaleString()}
+      </Text>
     </View>
   );
 }
@@ -88,73 +108,62 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 10,
     color: '#333',
+    textAlign: 'center',
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
+    color: '#666',
     textAlign: 'center',
     marginBottom: 40,
-    color: '#666',
   },
   sentimentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
     marginBottom: 40,
-    flexWrap: 'wrap',
   },
   sentimentButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    padding: 15,
-    borderRadius: 15,
     backgroundColor: '#fff',
-    width: '18%',
-    minWidth: 60,
-    marginBottom: 10,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
     borderWidth: 2,
-    borderColor: 'transparent',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
+    borderColor: '#E0E0E0',
   },
   sentimentButtonSelected: {
-    borderColor: '#F875AA',
-    backgroundColor: '#FDEDED',
+    borderColor: '#FF6B6B',
+    backgroundColor: '#FFE8E8',
   },
   emoji: {
-    fontSize: 44,
-    marginBottom: 8,
+    fontSize: 32,
+    marginRight: 16,
   },
   label: {
-    fontSize: 11,
-    textAlign: 'center',
-    color: '#F875AA',
-    fontWeight: '600',
+    fontSize: 18,
+    color: '#333',
+    fontWeight: '500',
   },
   submitButton: {
-    backgroundColor: '#F875AA',
-    padding: 20,
-    borderRadius: 16,
+    backgroundColor: '#FF6B6B',
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
-    marginTop: 20,
-    shadowColor: '#F875AA',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4,
+    marginBottom: 16,
   },
   submitButtonDisabled: {
-    backgroundColor: '#F875AA',
-    opacity: 0.5,
+    backgroundColor: '#FFAAAA',
   },
   submitButtonText: {
     color: '#fff',
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  timestamp: {
+    textAlign: 'center',
+    color: '#999',
+    fontSize: 14,
   },
 });

@@ -21,7 +21,11 @@
       "Bash(npx eas-cli:*)",
       "Bash(watchman watch-del-all:*)",
       "Bash(timeout 10 cat:*)",
-      "Bash(eas build:*)"
+      "Bash(eas build:*)",
+      "Bash(kill:*)",
+      "Bash(timeout 30 npx expo start:*)",
+      "Bash(npx eas:*)",
+      "Bash(CI=1 npx eas update:*)"
     ],
     "deny": [],
     "ask": []
