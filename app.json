@@ -8,8 +8,7 @@
         "expo-camera",
         {
           "cameraPermission": "Allow EmoGo to access your camera to record video vlogs.",
-          "microphonePermission": "Allow EmoGo to access your microphone to record video vlogs.",
-          "recordAudioAndroid": true
+          "microphonePermission": "Allow EmoGo to access your microphone to record video vlogs."
         }
       ],
       [
@@ -49,8 +48,8 @@
     },
     "ios": {
       "bundleIdentifier": "com.spiketren.emogoapp",
+      "supportsTablet": true,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "Allow EmoGo to access your camera to record video vlogs.",
         "NSMicrophoneUsageDescription": "Allow EmoGo to access your microphone to record video vlogs.",
         "NSLocationWhenInUseUsageDescription": "Allow EmoGo to use your location to track where you record your responses.",

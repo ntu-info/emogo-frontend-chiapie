@@ -1,18 +1,59 @@
-# EmoGo - Experience-Sampling App
+# EmoGo: Experience-Sampling App 📱
 
-## App URI
-🔗: https://expo.dev/accounts/janet_c/projects/emogo-app/builds/c94a6ccc-1aa8-4fd2-83fe-6a3a80efcc18
+## App URI (Android APK)
+🔗: https://expo.dev/accounts/janet_c/projects/emogo-app/builds/bae8ddad-8a7c-4be6-8bf8-b5cf6672152d
+
+**Installation:** Click the link above → Click [Install] button → Download and install APK on Android device
+
+---
 
 ## Overview
-EmoGo is a mobile application designed to collect experience-sampling data through sentiment surveys, 1-second video vlogs, and GPS coordinates. The app sends 3 daily reminders to help users track their emotional well-being throughout the day.
+EmoGo is a mobile experience-sampling application that combines video recording with mood tracking. Users capture their emotional state through 1-second video vlogs paired with 5-point Likert scale mood ratings. The app automatically records GPS coordinates and timestamps for each entry, enabling comprehensive emotional well-being analysis over time.
 
-## Features
-- **Sentiment Survey**: 5-point scale (😢 to 😄) to track your mood
-- **1-Second Video Vlogs**: Quick video recordings to capture moments
-- **GPS Tracking**: Automatic location recording with each entry
-- **Daily Reminders**: 3 scheduled notifications (9 AM, 2 PM, 8 PM)
-- **Local Storage**: All data stored locally using SQLite
-- **Data Export**: Export your data as JSON with video files
+## Key Features
+
+### 🎥 Combined Video + Mood Interface
+- **Unified recording screen** with camera view and mood selector
+- Record 1-second video vlogs with simultaneous mood rating
+- Must select mood before recording (validation included)
+- Camera positioned center-screen with mood scale directly below
+
+### 😊 5-Point Likert Mood Scale
+- Visual emoji-based rating: 😢 😕 😐 🙂 😄
+- Labels: Very Sad → Sad → Neutral → Happy → Very Happy
+- Mapped to numeric scores (1-5) for data analysis
+
+### 📍 Automatic GPS Tracking
+- Location captured with every video and mood entry
+- Same timestamp and GPS coordinates link video to mood data
+- Optional: app functions without location permission
+
+### 🔔 Smart Notifications
+- 3 daily reminders: 9 AM, 2 PM, 8 PM
+- Automatically scheduled on app launch
+- Tapping notification navigates to survey screen
+
+### 💾 Local SQLite Storage
+- All data stored locally on device
+- Two database tables: surveys (mood) and vlogs (videos)
+- Persistent storage between app sessions
+
+### 📊 Multiple Export Formats
+
+#### CSV Export (Recommended for Analysis)
+```csv
+Type,Timestamp,Date,Time,Sentiment_Score,Sentiment_Label,Video_URI,Latitude,Longitude,Has_Location
+Survey,2025-11-26T14:30:00.000Z,2025-11-26,14:30:00,5,Very Happy,,37.7749,-122.4194,Yes
+Vlog,2025-11-26T14:30:00.000Z,2025-11-26,14:30:00,,,vlog_1732604400000.mp4,37.7749,-122.4194,Yes
+```
+
+#### JSON Export
+Complete metadata export with all survey and vlog entries
+
+#### Full Export (JSON + Videos)
+Includes all video files plus metadata for complete backup
+
+---
 
 ## Tech Stack
 - **Framework**: React Native with Expo (SDK 54)
@@ -20,150 +61,27 @@ EmoGo is a mobile application designed to collect experience-sampling data throu
 - **Language**: TypeScript
 - **Database**: expo-sqlite (local SQLite database)
 - **Key Packages**:
-  - expo-notifications (scheduled reminders)
-  - expo-camera (video recording)
-  - expo-location (GPS tracking)
-  - expo-file-system (file management)
-  - expo-sharing (data export)
+  - `expo-notifications` - Scheduled reminders
+  - `expo-camera` - Video recording
+  - `expo-location` - GPS tracking
+  - `expo-file-system` - File management
+  - `expo-sharing` - Data export
 
-## Installation
+---
+
+## Installation & Setup
 
 ### Prerequisites
 - Node.js (v16 or higher)
 - npm or yarn
 - Expo CLI
-- Expo Go app on your iOS device (for testing)
+- Expo Go app (for iOS testing) OR EAS Build (for production)
 
-### Setup
+### Quick Start
 ```bash
 # Install dependencies
 npm install
 
-# Start the development server
-npx expo start
-```
-
-### Running on iOS Device
-1. Install Expo Go from the App Store on your iPhone
-2. Run `npx expo start` in your terminal
-3. Scan the QR code with your iPhone camera
-4. The app will open in Expo Go
-
-## Project Structure
-```
-emogo-app/
-├── app/                    # Expo Router screens
-│   ├── _layout.tsx         # Root layout with notification handlers
-│   └── (tabs)/             # Tab navigation
-│       ├── _layout.tsx     # Tab bar configuration
-│       ├── index.tsx       # Home/Dashboard screen
-│       ├── survey.tsx      # Sentiment survey screen
-│       ├── vlog.tsx        # Video recording screen
-│       └── export.tsx      # Data export screen
-├── utils/                  # Utility functions
-│   ├── database.ts         # SQLite database operations
-│   ├── location.ts         # GPS location services
-│   └── notifications.ts    # Notification management
-├── data/                   # Exported data storage
-├── app.json                # Expo configuration
-├── eas.json                # EAS Build configuration
-├── package.json            # Dependencies
-└── tsconfig.json           # TypeScript configuration
-```
-
-## Database Schema
-
-### Surveys Table
-```sql
-CREATE TABLE surveys (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  timestamp TEXT NOT NULL,
-  sentiment_score INTEGER NOT NULL,
-  latitude REAL,
-  longitude REAL
-);
-```
-
-### Vlogs Table
-```sql
-CREATE TABLE vlogs (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  timestamp TEXT NOT NULL,
-  video_uri TEXT NOT NULL,
-  latitude REAL,
-  longitude REAL
-);
-```
-
-## Data Collection
-
-### Survey Responses
-- User selects a sentiment rating (1-5)
-- Timestamp is automatically recorded
-- GPS coordinates are captured if permission is granted
-- Data is stored in SQLite database
-
-### Video Vlogs
-- User records a 1-second video
-- Video is saved to device storage
-- Metadata (timestamp, location, file path) stored in database
-- Videos are included in exports
-
-## Notifications
-The app schedules 3 daily reminders:
-- **9:00 AM** - Morning check-in
-- **2:00 PM** - Afternoon check-in
-- **8:00 PM** - Evening check-in
-
-Notifications will navigate to the survey screen when tapped.
-
-## Data Export
-
-### JSON Export
-Exports survey and vlog metadata:
-```json
-{
-  "export_date": "2025-11-26T12:00:00.000Z",
-  "total_surveys": 10,
-  "total_vlogs": 8,
-  "surveys": [...],
-  "vlogs": [...]
-}
-```
-
-### Full Export
-Includes JSON data plus all video files for complete backup.
-
-## Permissions Required
-
-### iOS
-- Camera (for video recording)
-- Microphone (for video audio)
-- Location When In Use (for GPS tracking)
-- Notifications (for daily reminders)
-
-All permissions are requested when first needed and can be managed in iOS Settings.
-
-## Building for Production
-
-### iOS Build (Preview)
-```bash
-# Install EAS CLI (if not already installed)
-npm install -g eas-cli
-
-# Login to Expo account
-eas login
-
-# Build iOS preview
-eas build --platform ios --profile preview
-```
-
-The build will be available in your Expo account dashboard. You can install it on your iPhone via TestFlight or direct download.
-
-## Development
-
-### Running Locally
-```bash
 # Start development server
 npx expo start
 
@@ -174,32 +92,324 @@ npx expo start --tunnel
 npx expo start --clear
 ```
 
-### Testing Features
-1. **Survey**: Navigate to Survey tab and submit responses
-2. **Vlog**: Navigate to Vlog tab, grant camera permissions, record 1-second videos
-3. **Export**: Navigate to Export tab to download your data
-4. **Notifications**: Scheduled automatically on app start (test with immediate notification in code)
+### Running on Device
+
+#### Option 1: Expo Go (Development)
+1. Install Expo Go from App Store (iOS) or Google Play (Android)
+2. Run `npx expo start --tunnel`
+3. Scan QR code with your device
+4. App opens in Expo Go
+
+**Note:** Some native features have limitations in Expo Go. For full functionality, use a development build.
+
+#### Option 2: Development Build (Recommended)
+```bash
+# iOS
+eas build --platform ios --profile preview
+
+# Android
+eas build --platform android --profile preview
+```
+
+---
+
+## Project Structure
+```
+emogo-app/
+├── app/                    # Expo Router screens
+│   ├── _layout.tsx         # Root layout with notification setup
+│   └── (tabs)/             # Tab navigation
+│       ├── _layout.tsx     # Tab bar configuration
+│       ├── index.tsx       # Home/Dashboard
+│       ├── vlog.tsx        # Combined video + mood interface ⭐
+│       ├── survey.tsx      # Mood-only (no video)
+│       └── export.tsx      # Data export (CSV, JSON, Videos)
+├── utils/                  # Utility functions
+│   ├── database.ts         # SQLite operations & schema
+│   ├── location.ts         # GPS location services
+│   └── notifications.ts    # Notification scheduling
+├── data/                   # Exported data storage
+├── app.json                # Expo configuration
+├── eas.json                # EAS Build configuration
+└── package.json            # Dependencies
+```
+
+---
+
+## Database Schema
+
+### Surveys Table
+```sql
+CREATE TABLE surveys (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  timestamp TEXT NOT NULL,
+  sentiment_score INTEGER NOT NULL,  -- 1-5 scale
+  latitude REAL,
+  longitude REAL
+);
+```
+
+### Vlogs Table
+```sql
+CREATE TABLE vlogs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  timestamp TEXT NOT NULL,
+  video_uri TEXT NOT NULL,           -- Local file path
+  latitude REAL,
+  longitude REAL
+);
+```
+
+**Data Linking:** Entries with identical timestamps represent a combined video+mood recording from the main interface.
+
+---
+
+## App Navigation
+
+### 🏠 Home Tab
+- Today's progress (surveys and vlogs count)
+- All-time statistics
+- Quick action buttons
+
+### 🎬 Record Tab (Main Feature)
+- Camera view (3:4 aspect ratio, centered)
+- 5-point mood scale below camera
+- "Flip" button to switch camera
+- Record button captures 1-second video
+- Saves video + mood + GPS + timestamp
+
+### ❤️ Mood Only Tab
+- Alternative quick mood check-in
+- No video recording
+- Useful for rapid data collection
+
+### 📤 Export Tab
+- Summary statistics
+- CSV export (recommended)
+- JSON export
+- Full export (JSON + all video files)
+
+---
+
+## Data Collection Workflow
+
+### Combined Video + Mood Entry
+1. User opens "Record" tab
+2. Selects mood from 5 emoji options
+3. Taps record button
+4. Camera records exactly 1 second
+5. App saves:
+   - Video file to local storage
+   - Video metadata to `vlogs` table
+   - Mood data to `surveys` table
+   - GPS coordinates (if permitted)
+   - ISO timestamp (identical for linked entries)
+
+### Mood-Only Entry
+1. User opens "Mood Only" tab
+2. Selects mood
+3. Taps submit
+4. App saves to `surveys` table only
+
+---
+
+## Permissions
+
+### iOS
+- **Camera**: Record video vlogs
+- **Microphone**: Capture audio with video
+- **Location When In Use**: Track entry locations
+- **Notifications**: Daily reminders
+
+### Android
+- Same as iOS, plus:
+- **Storage**: Save videos and export data
+
+All permissions requested on first use. App functions with reduced features if permissions denied (except camera, which is required for video recording).
+
+---
+
+## Building for Production
+
+### Android APK (Preview Build)
+```bash
+# Build APK
+eas build --platform android --profile preview
+
+# Build process takes ~15 minutes
+# Check build status: https://expo.dev/accounts/[username]/projects/emogo-app
+```
+
+### iOS (Requires Apple Developer Account)
+```bash
+# Build for device
+eas build --platform ios --profile preview
+
+# Requires interactive Apple account login
+# Follow prompts for code signing
+```
+
+---
+
+## Data Export Guide
+
+### CSV Export
+**Best for:** Data analysis in Excel, Python, R, or statistical software
+
+**Includes:**
+- Entry type (Survey or Vlog)
+- Full ISO timestamp
+- Separated date and time
+- Sentiment score (1-5) and label
+- Video filename (for vlogs)
+- GPS coordinates
+- Location availability flag
+
+### JSON Export
+**Best for:** Programmatic data processing
+
+**Includes:**
+- Export metadata (date, counts)
+- Complete survey array
+- Complete vlog array with file paths
+
+### Full Export
+**Best for:** Complete backup
+
+**Includes:**
+- JSON metadata file
+- All video files (.mp4)
+- Packaged in exportable directory
+
+---
 
 ## Troubleshooting
 
+### "Type Error: expected boolean, but had type string"
+**Solution:**
+- Force close Expo Go completely
+- Clear app cache: Swipe left on project → Delete
+- Re-scan QR code fresh
+
 ### Notifications Not Working
-- Check notification permissions in iOS Settings
-- Verify notifications are scheduled: Check console logs
-- Test with immediate notification first
+- Check notification permissions in device settings
+- Verify notifications scheduled: Check console logs
+- iOS requires physical device (not simulator)
 
 ### Camera Not Working
-- Ensure camera permissions are granted
-- Camera only works on physical devices (not simulator)
-- Check that video recording is supported
+- Camera permissions must be granted
+- Only works on physical devices
+- Expo Go has camera limitations (use dev build)
 
 ### Location Not Available
-- Enable Location Services in iOS Settings
-- Grant location permission when prompted
-- Location is optional and won't block functionality
+- Enable Location Services in device settings
+- Grant "While Using App" permission
+- App functions without location (coordinates saved as null)
 
 ### Database Issues
-- Database is initialized on first app launch
-- Check console logs for errors
+- Database auto-initializes on first launch
+- Check console for error logs
 - Data persists between app restarts
+- To reset: Clear app data or reinstall
+
+### Metro Bundler Issues
+```bash
+# Clear all caches
+watchman watch-del-all
+rm -rf .expo node_modules/.cache
+npx expo start --clear
+```
 
 ---
+
+## Development Notes
+
+### Testing Workflow
+1. Make code changes
+2. Save files (Metro auto-reloads)
+3. Or reload manually: Shake device → Reload
+
+### Recommended Testing
+- Test on physical device (camera, GPS, notifications)
+- Test with/without permissions granted
+- Test data persistence across app restarts
+- Test export with actual data (3+ entries)
+- Verify CSV opens correctly in Excel/Google Sheets
+
+### Common Development Commands
+```bash
+# Start with clean cache
+npx expo start --clear
+
+# View logs
+npx expo start (logs appear in terminal)
+
+# Build development version
+eas build --platform [ios|android] --profile development
+
+# Build production version
+eas build --platform [ios|android] --profile production
+```
+
+---
+
+## Known Limitations
+
+### Expo Go Limitations
+- Notifications: Limited functionality in Expo Go (SDK 53+)
+- Custom native code: Requires development build
+- Background location: Not fully supported
+
+**Solution:** Use `eas build --profile preview` for full functionality
+
+### Video Recording
+- Fixed 1-second duration (by design)
+- Requires camera permission (mandatory)
+- Files saved to app's document directory
+
+### GPS Tracking
+- Requires location permission (optional)
+- "While Using App" permission sufficient
+- Background tracking not implemented
+
+---
+
+## Future Enhancements (Not Implemented)
+
+- Cloud sync/backup
+- Data visualization dashboard
+- Customizable notification times
+- Video playback within app
+- Multi-user support
+- Export to cloud storage (Google Drive, Dropbox)
+
+---
+
+## Credits
+
+Built with:
+- React Native
+- Expo SDK 54
+- TypeScript
+- SQLite
+
+---
+
+## License
+
+MIT License - See LICENSE file for details
+
+---
+
+## Support
+
+For issues or questions:
+- Check troubleshooting section above
+- Review Expo documentation: https://docs.expo.dev
+- File issue on GitHub repository
+
+---
+
+**Last Updated:** November 26, 2025
+**Version:** 1.0.0
+**Expo SDK:** 54

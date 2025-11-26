@@ -92,18 +92,18 @@ export default function HomeScreen() {
 
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => router.push('/(tabs)/survey')}
+            onPress={() => router.push('/(tabs)/vlog')}
           >
-            <Ionicons name="heart" size={24} color="#fff" />
-            <Text style={styles.actionButtonText}>Record Your Mood</Text>
+            <Ionicons name="videocam" size={24} color="#fff" />
+            <Text style={styles.actionButtonText}>Record Vlog + Mood</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.actionButton, styles.actionButtonSecondary]}
-            onPress={() => router.push('/(tabs)/vlog')}
+            onPress={() => router.push('/(tabs)/survey')}
           >
-            <Ionicons name="videocam" size={24} color="#fff" />
-            <Text style={styles.actionButtonText}>Record 1-Second Vlog</Text>
+            <Ionicons name="heart" size={24} color="#fff" />
+            <Text style={styles.actionButtonText}>Record Mood Only</Text>
           </TouchableOpacity>
 
           <TouchableOpacity

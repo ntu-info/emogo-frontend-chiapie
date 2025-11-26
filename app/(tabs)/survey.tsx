@@ -48,7 +48,7 @@ export default function SurveyScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>How are you feeling?</Text>
-      <Text style={styles.subtitle}>Select your current mood</Text>
+      <Text style={styles.subtitle}>Quick mood check-in (without video)</Text>
 
       <View style={styles.sentimentContainer}>
         {sentimentEmojis.map((emoji, index) => (

@@ -82,6 +82,68 @@ export default function ExportScreen() {
     }
   };
 
+  const exportCSV = async () => {
+    setIsExporting(true);
+
+    try {
+      // Get all data
+      const surveys = await getAllSurveys();
+      const vlogs = await getAllVlogs();
+
+      // Create CSV header
+      const csvHeader = 'Type,Timestamp,Date,Time,Sentiment_Score,Sentiment_Label,Video_URI,Latitude,Longitude,Has_Location\n';
+
+      // Map sentiment scores to labels
+      const sentimentLabels = ['', 'Very Sad', 'Sad', 'Neutral', 'Happy', 'Very Happy'];
+
+      // Convert surveys to CSV rows
+      const surveyRows = surveys.map((survey: any) => {
+        const date = new Date(survey.timestamp);
+        const dateStr = date.toISOString().split('T')[0];
+        const timeStr = date.toTimeString().split(' ')[0];
+        const hasLocation = survey.latitude && survey.longitude ? 'Yes' : 'No';
+        const sentimentLabel = sentimentLabels[survey.sentiment_score] || 'Unknown';
+
+        return `Survey,${survey.timestamp},${dateStr},${timeStr},${survey.sentiment_score},${sentimentLabel},,${survey.latitude || ''},${survey.longitude || ''},${hasLocation}`;
+      }).join('\n');
+
+      // Convert vlogs to CSV rows
+      const vlogRows = vlogs.map((vlog: any) => {
+        const date = new Date(vlog.timestamp);
+        const dateStr = date.toISOString().split('T')[0];
+        const timeStr = date.toTimeString().split(' ')[0];
+        const hasLocation = vlog.latitude && vlog.longitude ? 'Yes' : 'No';
+        const videoFilename = vlog.video_uri.split('/').pop();
+
+        return `Vlog,${vlog.timestamp},${dateStr},${timeStr},,,${videoFilename},${vlog.latitude || ''},${vlog.longitude || ''},${hasLocation}`;
+      }).join('\n');
+
+      // Combine all rows
+      const csvContent = csvHeader + surveyRows + (vlogRows ? '\n' + vlogRows : '');
+
+      // Write CSV file
+      const fileUri = (FileSystem as any).documentDirectory + 'emogo_export.csv';
+      await FileSystem.writeAsStringAsync(fileUri, csvContent);
+
+      // Share file
+      const isAvailable = await Sharing.isAvailableAsync();
+
+      if (isAvailable) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'text/csv',
+          dialogTitle: 'Export EmoGo Data as CSV',
+        });
+      } else {
+        Alert.alert('Export Complete', `CSV saved to: ${fileUri}`);
+      }
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      Alert.alert('Error', 'Failed to export CSV. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const exportAllFiles = async () => {
     setIsExporting(true);
 
@@ -181,6 +243,16 @@ export default function ExportScreen() {
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.exportButton, isExporting && styles.exportButtonDisabled]}
+            onPress={exportCSV}
+            disabled={isExporting}
+          >
+            <Text style={styles.exportButtonText}>
+              {isExporting ? 'Exporting...' : 'Export CSV (Recommended)'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.exportButton, styles.exportAllButton, isExporting && styles.exportButtonDisabled]}
             onPress={exportData}
             disabled={isExporting}
           >
@@ -201,8 +273,7 @@ export default function ExportScreen() {
         </View>
 
         <Text style={styles.infoText}>
-          Export your data to share or backup. The JSON file contains all survey responses and vlog metadata.
-          The "Export All Files" option includes video files as well.
+          Export your data to share or backup. CSV format is recommended for data analysis and includes recording time, GPS location, sentiment scores, and labels. JSON and video exports are also available.
         </Text>
       </View>
     </ScrollView>

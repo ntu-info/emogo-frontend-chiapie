@@ -5,20 +5,8 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
+        headerShown: true,
         tabBarActiveTintColor: '#F875AA',
-        tabBarInactiveTintColor: '#999',
-        tabBarStyle: {
-          backgroundColor: '#fff',
-          borderTopWidth: 1,
-          borderTopColor: '#FDEDED',
-        },
-        headerStyle: {
-          backgroundColor: '#F875AA',
-        },
-        headerTintColor: '#fff',
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
       }}
     >
       <Tabs.Screen
@@ -31,20 +19,20 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="survey"
+        name="vlog"
         options={{
-          title: "Survey",
+          title: "Record",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart" size={size} color={color} />
+            <Ionicons name="videocam" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="vlog"
+        name="survey"
         options={{
-          title: "Vlog",
+          title: "Mood Only",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="videocam" size={size} color={color} />
+            <Ionicons name="heart" size={size} color={color} />
           ),
         }}
       />

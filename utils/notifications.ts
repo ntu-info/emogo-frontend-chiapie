@@ -68,14 +68,19 @@ export const scheduleDailyPrompts = async (): Promise<void> => {
     ];
 
     for (const time of times) {
+      const content: any = {
+        title: "Time to check in! 💙",
+        body: "How are you feeling right now?",
+        data: { screen: 'survey', time: time.label },
+        sound: true,
+      };
+
+      if (Platform.OS === 'ios') {
+        content.categoryIdentifier = 'survey_reminder';
+      }
+
       const notificationId = await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "Time to check in! 💙",
-          body: "How are you feeling right now?",
-          data: { screen: 'survey', time: time.label },
-          sound: true,
-          ...(Platform.OS === 'ios' && { categoryIdentifier: 'survey_reminder' }),
-        },
+        content,
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DAILY,
           hour: time.hour,

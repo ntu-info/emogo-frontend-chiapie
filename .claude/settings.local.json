@@ -18,7 +18,10 @@
       "Bash(npm bin:*)",
       "Bash(eas whoami:*)",
       "Bash(sudo chown:*)",
-      "Bash(npx eas-cli:*)"
+      "Bash(npx eas-cli:*)",
+      "Bash(watchman watch-del-all:*)",
+      "Bash(timeout 10 cat:*)",
+      "Bash(eas build:*)"
     ],
     "deny": [],
     "ask": []
